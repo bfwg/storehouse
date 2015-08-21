@@ -31,7 +31,7 @@
     return [NSString stringWithFormat:@"姓名：%@", _name];
 }
 
-- (getName {
+- (getName {s
     
 }
     

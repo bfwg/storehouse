@@ -1,0 +1,9 @@
+<% locals.title="getting know locals" %> 
+<div>
+    <p>
+        <%=: result | map : 'first_name' | join %>
+    </p>
+    <p class="show_me_tag">user.html starts</p>
+    <% include user.html %>
+    <p class="show_me_tag">user.html ends</p>
+</div>
