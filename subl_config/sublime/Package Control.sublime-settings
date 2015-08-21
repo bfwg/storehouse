@@ -1,0 +1,27 @@
+{
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"All Autocomplete",
+		"AutoFileName",
+		"Babel",
+		"DocBlockr",
+		"EditorConfig",
+		"Focus File on Sidebar",
+		"Git",
+		"HTML-CSS-JS Prettify",
+		"Javascript Beautify",
+		"LESS",
+		"Lucario Color Scheme",
+		"Package Control",
+		"SideBarEnhancements",
+		"Solarized Color Scheme",
+		"Solarized Toggle",
+		"Stylus",
+		"SublimeLinter",
+		"SublimeLinter-contrib-eslint",
+		"Vintageous"
+	]
+}

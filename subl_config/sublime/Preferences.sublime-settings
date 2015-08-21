@@ -1,0 +1,19 @@
+{
+    "always_show_minimap_viewport": true,
+    "color_scheme": "Packages/User/SublimeLinter/Monokai Bright (SL).tmTheme",
+    "draw_minimap_border": true,
+    "font_size": 13,
+    "highlight_line": false,
+    "highlight_modified_tabs": true,
+    "ignored_packages": [
+        "Vintage"
+    ],
+    "open_files_in_new_window": false,
+    "show_encoding": true,
+    "show_full_path": true,
+    "show_line_endings": true,
+    "tab_size": 2,
+    "vintageous_use_ctrl_keys": true,
+    "vintageous_use_sys_clipboard": true,
+    "word_separators": "./\\()\"':,.;<>~!@#$%^&*|+=[]{}`~?"
+}
