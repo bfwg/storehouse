@@ -8,14 +8,29 @@
 
 #import <Foundation/Foundation.h>
 
+
 @interface Person : NSObject {
-
-    NSString *_name;
+    
     NSInteger _age;
-    float _height;
-
+    
 }
 
+@property CGPoint position;
+
+@property NSString *_name;
+
+@property float _height;
+
 - (instancetype)initWithName:(NSString *)name age:(NSInteger)age height:(float)_height;
+
+- (void)setName:(NSString *)name;
+
+- (NSString *) getName;
+
+- (void)setAge:(NSInteger)age;
+
+- (NSInteger)getAge;
+
+- (void) whoami;
 
 @end

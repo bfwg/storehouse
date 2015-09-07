@@ -1,0 +1,22 @@
+{
+  "name": "react_web",
+  "version": "1.0.0",
+  "description": "play around with react",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Fan Jin",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.13.3",
+    "ejs": "^2.3.4",
+    "express": "^4.13.3",
+    "fs": "0.0.2",
+    "path": "^0.11.14"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0"
+  }
+}

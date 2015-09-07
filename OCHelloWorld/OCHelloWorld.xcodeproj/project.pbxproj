@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2F0F4E111B8A907F00A73A6F /* Teacher.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F0F4E101B8A907F00A73A6F /* Teacher.m */; };
+		2F5A45021B8AF619008A3515 /* Student.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F5A45011B8AF619008A3515 /* Student.m */; };
 		2F8DE8E71B81B5A700A57302 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F8DE8E61B81B5A700A57302 /* main.m */; };
 		2F8DE8EF1B81B61500A57302 /* Person.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F8DE8EE1B81B61500A57302 /* Person.m */; };
 /* End PBXBuildFile section */
@@ -24,6 +26,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2F0F4E0F1B8A907F00A73A6F /* Teacher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Teacher.h; sourceTree = "<group>"; };
+		2F0F4E101B8A907F00A73A6F /* Teacher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Teacher.m; sourceTree = "<group>"; };
+		2F5A45001B8AF619008A3515 /* Student.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Student.h; sourceTree = "<group>"; };
+		2F5A45011B8AF619008A3515 /* Student.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Student.m; sourceTree = "<group>"; };
 		2F8DE8E31B81B5A700A57302 /* OCHelloWorld */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OCHelloWorld; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F8DE8E61B81B5A700A57302 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		2F8DE8ED1B81B61500A57302 /* Person.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Person.h; sourceTree = "<group>"; };
@@ -62,6 +68,10 @@
 			children = (
 				2F8DE8E61B81B5A700A57302 /* main.m */,
 				2F8DE8ED1B81B61500A57302 /* Person.h */,
+				2F0F4E0F1B8A907F00A73A6F /* Teacher.h */,
+				2F0F4E101B8A907F00A73A6F /* Teacher.m */,
+				2F5A45001B8AF619008A3515 /* Student.h */,
+				2F5A45011B8AF619008A3515 /* Student.m */,
 				2F8DE8EE1B81B61500A57302 /* Person.m */,
 			);
 			path = OCHelloWorld;
@@ -123,8 +133,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2F0F4E111B8A907F00A73A6F /* Teacher.m in Sources */,
 				2F8DE8EF1B81B61500A57302 /* Person.m in Sources */,
 				2F8DE8E71B81B5A700A57302 /* main.m in Sources */,
+				2F5A45021B8AF619008A3515 /* Student.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,6 +253,7 @@
 				2F8DE8EC1B81B5A700A57302 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
