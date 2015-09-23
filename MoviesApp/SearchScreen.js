@@ -2,12 +2,22 @@
 
 var React = require('react-native');
 var {
-  Image,
+  ActivityIndicatorIOS,
   ListView,
+  Platform,
+  ProgressBarAndroid,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } = React;
+
+var MovieCell = require('./MovieCell');
+var MovieScreen = require('./MovieScreen');
+
+var SearchBar = require('SearchBar');
+
+var invariant = require('invariant');
 
 /**
  * This is for demo purposes only, and rate limited.
@@ -30,10 +40,12 @@ var resultsCache = {
   totalForQuery: {},
 };
 
+var TimerMixin = require('react-timer-mixin');
+
 var LOADING = {};
 
 var SearchScreen = React.createClass({
-
+  mixins: [TimerMixin],
 
   timeoutID: (null: any),
 
@@ -124,8 +136,147 @@ var SearchScreen = React.createClass({
 
   },
 
+  hasMore: function(): boolean {
+    var query = this.state.filter;
+    if (!resultsCache.dataForQuery[query]) {
+      return true;
+    }
+    return (
+      resultsCache.totalForQuery[query] !==
+      resultsCache.dataForQuery[query].length
+    );
+  },
+
+  onEndReached: function() {
+    var query = this.state.filter;
+    if (!this.hasMore() || this.state.isLoadingTail) {
+      // We're already fetching or have all the elements so noop
+      return;
+    }
+
+    if (LOADING[query]) {
+      return;
+    }
+
+    LOADING[query] = true;
+    this.setState({
+      queryNumber: this.state.queryNumber + 1,
+      isLoadingTail: true,
+    });
+
+    var page = resultsCache.nextPageNumberForQuery[query];
+    invariant(page != null, 'Next page number for "%s" is missing', query);
+    fetch(this._urlForQueryAndPage(query, page))
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error(error);
+        LOADING[query] = false;
+        this.setState({
+          isLoadingTail: false,
+        });
+      })
+      .then((responseData) => {
+        var moviesForQuery = resultsCache.dataForQuery[query].slice();
+
+        LOADING[query] = false;
+        // We reached the end of the list before the expected number of results
+        if (!responseData.movies) {
+          console.log('NO MOVIES????');
+          resultsCache.totalForQuery[query] = moviesForQuery.length;
+        } else {
+          for (var i in responseData.movies) {
+            moviesForQuery.push(responseData.movies[i]);
+          }
+          resultsCache.dataForQuery[query] = moviesForQuery;
+          resultsCache.nextPageNumberForQuery[query] += 1;
+        }
+
+        if (this.state.filter !== query) {
+          // do not update state if the query is stale
+          return;
+        }
+
+        this.setState({
+          isLoadingTail: false,
+          dataSource: this.getDataSource(resultsCache.dataForQuery[query]),
+        });
+      })
+      .done();
+  },
+
   getDataSource: function(movies: Array<any>): ListView.DataSource {
     return this.state.dataSource.cloneWithRows(movies);
+  },
+
+  selectMovie: function(movie: Object) {
+    if (Platform.OS === 'ios') {
+      this.props.navigator.push({
+        title: movie.title,
+        component: MovieScreen,
+        passProps: {movie},
+      });
+    } else {
+      dismissKeyboard();
+      this.props.navigator.push({
+        title: movie.title,
+        name: 'movie',
+        movie: movie,
+      });
+    }
+  },
+
+  renderFooter: function() {
+    if (!this.hasMore() || !this.state.isLoadingTail) {
+      return <View style={styles.scrollSpinner} />;
+    }
+    if (Platform.OS === 'ios') {
+      return <ActivityIndicatorIOS style={styles.scrollSpinner} />;
+    } else {
+      return (
+        <View  style={{alignItems: 'center'}}>
+          <ProgressBarAndroid styleAttr="Large"/>
+        </View>
+      );
+    }
+  },
+
+  renderSeparator: function(
+    sectionID: number | string,
+    rowID: number | string,
+    adjacentRowHighlighted: boolean
+  ) {
+    var style = styles.rowSeparator;
+    if (adjacentRowHighlighted) {
+        style = [style, styles.rowSeparatorHide];
+    }
+    return (
+      <View key={"SEP_" + sectionID + "_" + rowID}  style={style}/>
+    );
+  },
+
+  renderRow: function(
+    movie: Object,
+    sectionID: number | string,
+    rowID: number | string,
+    highlightRowFunc: (sectionID: ?number | string, rowID: ?number | string) => void
+  ) {
+    return (
+      <MovieCell
+        key={movie.id}
+        onSelect={() => this.selectMovie(movie)}
+        onHighlight={() => highlightRowFunc(sectionID, rowID)}
+        onUnhighlight={() => highlightRowFunc(null, null)}
+        movie={movie}
+      />
+    );
+  },
+
+  onSearchChange: function(event: Object) {
+    var filter = event.nativeEvent.text.toLowerCase();
+
+    this.clearTimeout(this.timeoutID);
+    this.timeoutID = this.setTimeout(() => this.searchMovies(filter), 100);
+    console.log(LOADING);
   },
 
   render: function() {
@@ -137,25 +288,24 @@ var SearchScreen = React.createClass({
       <ListView
         ref="listview"
         dataSource={this.state.dataSource}
-        style={styles.listView}
-        renderRow={(movie) => {
-          return (
-            <View>
-              <Image
-                source={{uri: movie.posters.thumbnail}}
-                style={styles.thumbnail}
-              />
-              <View style={styles.rightContainer}>
-                <Text style={styles.title}>{movie.title}</Text>
-                <Text style={styles.year}>{movie.year}</Text>
-              </View>
-            </View>
-          );
-        }}
+        renderSeparator={this.renderSeparator}
+        renderRow={this.renderRow}
+        renderFooter={this.renderFooter}
+        onEndReached={this.onEndReached}
+        automaticallyAdjustContentInsets={false}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps={true}
+        showsVerticalScrollIndicator={false}
       />;
 
     return (
-      <View style={{marginTop: 64, flexDirection: 'row'}}>
+      <View style={styles.container}>
+        <SearchBar
+          onSearchChange={this.onSearchChange}
+          isLoading={this.state.isLoading}
+          onFocus={() =>
+              this.refs.listview && this.refs.listview.getScrollResponder().scrollTo(0, 0)}
+        />
         {content}
       </View>
     );
@@ -193,24 +343,20 @@ var styles = StyleSheet.create({
     marginTop: 80,
     color: '#888888',
   },
-  rightContainer: {
-    flex: 1,
+  separator: {
+    height: 1,
+    backgroundColor: '#eeeeee',
   },
-  title: {
-    fontSize: 20,
-    marginBottom: 8,
-    textAlign: 'center',
+  scrollSpinner: {
+    marginVertical: 20,
   },
-  year: {
-    textAlign: 'center',
+  rowSeparator: {
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    height: 1,
+    marginLeft: 4,
   },
-  thumbnail: {
-    width: 53,
-    height: 81,
-  },
-  listView: {
-    paddingTop: 20,
-    backgroundColor: '#F5FCFF',
+  rowSeparatorHide: {
+    opacity: 0.0,
   },
 });
 
