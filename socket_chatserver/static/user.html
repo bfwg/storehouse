@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="/socket.io.js"></script>
+    <script src="/EventEmitter.min.js"></script>
+    <script src="/room.io.js"></script>
+
+    <script>
+
+    var username, userid;
+    var socket, Rooms;
+      function socketConnect() {
+        $("#status").css("color", "green");
+        $("#status").text("Connected");
+        $("#form").slideUp(200);
+
+        username = $('#username').val();
+        userid = $('#userid').val();
+        roomid = $('#room').val();
+        inRoomArr = [];
+        if(roomid !== 'noroom')
+          inRoomArr.push(roomid);
+        //socket = io.connect('http://192.168.99.100:10001/room.io', {
+        socket = io.connect('http://192.168.0.12:3000/room.io', {
+          query: {
+            role: 'user',
+            username: username,
+            password: '123',
+            userid: userid,
+            inRoom: inRoomArr
+          }
+        });
+        Rooms = RoomClient(socket);
+
+        //reconnecting
+        if(roomid !== 'noroom') {
+          joinRoom(roomid);
+          console.log(roomid);
+        }
+        //onBarcodeScan('123:chat');
+      }
+
+      models = [];
+
+      function joinRoom(id) {
+        $('#room').val(id);
+        var room = Rooms.add(id);
+        room.removeAllListeners();
+
+        room.on('cm', function(message) {
+          models.push(message);
+          $('#chat').append('<p id="msg' + message.id + '">' + message.payload.text + '<a href="#" onclick="deleteMessage(' + message.id + ');">X</a></p>');
+        });
+
+        room.on('caches', function(msgArr) {
+          console.log(msgArr);
+          //accroding roomid to put cache messages
+          msgArr.forEach(function(msg, i) {
+            msg.payload = JSON.parse(msg.payload);
+            models.push(msg);
+            $('#chat').append('<p style="color: red;" id="msg' + msg.id + '">' + msg.payload.text + '<a href="#" onclick="deleteMessage(' + msg.id + ');">X</a></p>');
+          });
+        });
+
+        room.on('dm', function(message) {
+          console.log('delete', message);
+          models.forEach(function(ele, index) {
+            if (ele.id.toString() === message.id.toString()) {
+              models.splice(index, 1);
+              $('#chat #msg' + message.id).remove();
+            }
+          });
+        });
+        return room;
+      }
+
+      function onBarcodeScan(id) {
+        joinRoom(id).send('join', null, function (err, message) {
+
+        });
+      }
+
+
+      $('p').each(function(index) {
+        models.push({id: $(this).attr('id').substring(3), text: $(this).text().substring(0, $(this).text().length - 1)});
+      })
+
+      console.log(models);
+
+
+      // socket.on('cachemsg', function (message, cb) {
+      //   message.forEach((ele) => {
+      //     models.push(ele);
+      //     $('#chat').append('<p id="msg' + ele.id + '" style="color: red;">' + ele.text + '<a href="#" onclick="deleteMessage(' + ele.id + ');">X</a></p>');
+
+      // socket = io.connect('http://localhost:3000/vip', {
+      //  query: {
+      //     userid: '007',
+      //     role: 'user',
+      //     username: 'fanjin',
+      //     password: 'redhat',
+      //     lastMsgId: 15
+      //  }
+      // });
+      // var conn = data(socket);
+      // var vip = conn.resource('vip');
+
+      // var models = [];
+
+      // vip.sync('list', function (err, messages) {
+      //   models = messages;
+      //   models.forEach(function(ele, index) {
+      //     $('#chat').append('<p id="msg' + ele.id + '">' + ele.text + '<a href="#" onclick="deleteMessage(' + ele.id + ');">X</a></p>');
+      //   });
+      //   socket.emit('cleancache', {username: 'fanjin'});
+      // });
+
+
+      function socket_disconnect ()
+      {
+          $("#status").css("color", "red");
+          $("#status").text("Discknnected");
+          console.log('func socket_disconnect');
+          if (socket) socket.disconnect();
+      }
+
+      function deleteMessage(id) {
+        models.forEach(function(ele, index) {
+          if (ele.id.toString() === id.toString()) {
+            Rooms.get('123').send('dm', id, function (err, message) {
+              console.log('delete message callback', message);
+              if (message) {
+                models.splice(index, 1);
+                $('#chat #msg' + id).remove();
+              }
+            });
+          }
+        });
+      }
+
+      function createMessage() {
+        var text = $('#message').val();
+        var message = {
+          ownerName: username,
+          text: text,
+          ownerid: userid
+        };
+        Rooms.get('123').send('cm', message, function (err, message) {
+          console.log(message);
+          models.push(message);
+          $('#chat').append('<p id="msg' + message.id + '">' + message.payload.text + '<a href="#" onclick="deleteMessage(' + message.id + ');">X</a></p>');
+        });
+      }
+
+
+      function login() {
+        socket.emit('login', {foo: 'bar'});
+      }
+      function logout() {
+        socket.emit('logout', {foo: 'bar'});
+      }
+      // Create a new message on the server
+      //:business:[id]:rooms
+      //  -type   | room:id
+      //hget(business:id, type)
+    </script>
+
+
+  </head>
+  <body>
+    <div id="form">
+      <h3>User Name</h3>
+      <input id="username" type="text" value="fanjin">
+      <h3>User Id</h3>
+      <input id="userid" type="text" value="111">
+      <!-- <button id="Login" onclick="login()">Login</button> -->
+      <!-- <button id="Logout" onclick="logout()">Logout</button> -->
+    </div>
+    <h3>Room Id</h3>
+    <input id="room" type="text" value="noroom">
+    <h2 id="status" style="color: red;">Disconnected</h2>
+    <button id="Connect" onclick="socketConnect()">Connect</button>
+    <button id="Disconnect" onclick="socket_disconnect()">Disconnect</button>
+    <button id="join" onclick="onBarcodeScan('123')">Join</button>
+    <div id="chat"></div>
+    <input id="message" type="text">
+    <button id="send" onclick="createMessage()">Send</button>
+  </body>
+</html>

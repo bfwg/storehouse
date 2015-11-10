@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="/socket.io.js"></script>
+    <script src="/EventEmitter.min.js"></script>
+    <script src="/room.io.js"></script>
+
+    <script>
+
+    var socket, Rooms;
+      function socketConnect() {
+        $("#status").css("color", "green");
+        $("#status").text("Connected");
+        console.log('func socketConnect');
+
+        //socket = io.connect('http://192.168.99.100:10001/room.io', {
+        socket = io.connect('http://192.168.0.12:3000/room.io', {
+          query: {
+            role: 'operator',
+            username: 'vera',
+            password: '123',
+            userid: 125
+          }
+        });
+        Rooms = RoomClient(socket);
+        onBarcodeScan('234');
+      }
+
+      models = [];
+
+      function onBarcodeScan(scope) {
+        var room = Rooms.add(scope);
+
+        console.log(room);
+
+        room.on('caches', function(messages) {
+          console.log('cache message', message);
+          models = messages.concat(models);
+          models.forEach(function(ele) {
+            $('#chat').append('<p id="msg' + ele.id + '">' + ele.payload + '<a href="#" onclick="deleteMessage(' + ele.id + ');">X</a></p>');
+          });
+        });
+
+        room.on('cm', function(message) {
+          console.log('create message', message);
+          models.push(message);
+          $('#chat').append('<p id="msg' + message.id + '">' + message.payload + '<a href="#" onclick="deleteMessage(' + message.id + ');">X</a></p>');
+        });
+
+        room.on('dm', function(message) {
+          console.log('delete', message);
+          models.forEach(function(ele, index) {
+            if (ele.id.toString() === message.id.toString()) {
+              models.splice(index, 1);
+              $('#chat #msg' + message.id).remove();
+            }
+          });
+        });
+      }
+
+
+      $('p').each(function(index) {
+        models.push({id: $(this).attr('id').substring(3), text: $(this).text().substring(0, $(this).text().length - 1)});
+      })
+
+      console.log(models);
+
+
+      // socket.on('cachemsg', function (message, cb) {
+      //   message.forEach((ele) => {
+      //     models.push(ele);
+      //     $('#chat').append('<p id="msg' + ele.id + '" style="color: red;">' + ele.text + '<a href="#" onclick="deleteMessage(' + ele.id + ');">X</a></p>');
+
+      // socket = io.connect('http://localhost:3000/vip', {
+      //  query: {
+      //     userid: '007',
+      //     role: 'user',
+      //     username: 'fanjin',
+      //     password: 'redhat',
+      //     lastMsgId: 15
+      //  }
+      // });
+      // var conn = data(socket);
+      // var vip = conn.resource('vip');
+
+      // var models = [];
+
+      // vip.sync('list', function (err, messages) {
+      //   models = messages;
+      //   models.forEach(function(ele, index) {
+      //     $('#chat').append('<p id="msg' + ele.id + '">' + ele.text + '<a href="#" onclick="deleteMessage(' + ele.id + ');">X</a></p>');
+      //   });
+      //   socket.emit('cleancache', {username: 'fanjin'});
+      // });
+
+
+      function socket_disconnect ()
+      {
+          $("#status").css("color", "red");
+          $("#status").text("Discknnected");
+          console.log('func socket_disconnect');
+          if (socket) socket.disconnect();
+      }
+
+      function deleteMessage(id) {
+        models.forEach(function(ele, index) {
+          if (ele.id.toString() === id.toString()) {
+            Rooms.get('234').send('dm', id, function (err, message) {
+              console.log('delete message callback', message);
+              if (message) {
+                models.splice(index, 1);
+                $('#chat #msg' + id).remove();
+              }
+            });
+          }
+        });
+      }
+
+      function createMessage() {
+        var payload = $('#message').val();
+        Rooms.get('234').send('cm', payload, function (err, message) {
+          console.log('create message callback', message);
+          if (message) {
+            models.push(message);
+            $('#chat').append('<p id="msg' + message.id + '">' + message.payload + '<a href="#" onclick="deleteMessage(' + message.id + ');">X</a></p>');
+          }
+        });
+      }
+
+      function login() {
+        socket.emit('login', {foo: 'bar'});
+      }
+      function logout() {
+        socket.emit('logout', {foo: 'bar'});
+      }
+      // Create a new message on the server
+    </script>
+
+  </head>
+  <body>
+    <h1>vera</h1>
+    <h2 id="status" style="color: red;">Disconnected</h2>
+    <input id="message" type="text">
+    <button id="send" onclick="createMessage()">Send</button>
+    <button id="Login" onclick="login()">Login</button>
+    <button id="Logout" onclick="logout()">Logout</button>
+    <div id="chat"></div>
+    <button id="Connect" onclick="socketConnect()">Connect</button>
+    <button id="Disconnect" onclick="socket_disconnect()">Disconnect</button>
+  </body>
+</html>

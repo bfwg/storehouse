@@ -1,0 +1,16 @@
+{
+  "vanskydb": {
+    "host": "10.106.186.131",
+    "port": "3306",
+    "database": "vanskydb",
+    "user": "vansky",
+    "password": "3HdVFGvG"
+  },
+  "ejfdb": {
+    "host": "10.106.186.131",
+    "port": "3306",
+    "database": "ejforum",
+    "user": "ejf",
+    "password": "FatZHLin"
+  }
+}
