@@ -1,4 +1,0 @@
-squid
-nginx
-varnish
-apache
